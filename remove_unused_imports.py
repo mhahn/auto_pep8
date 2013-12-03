@@ -279,6 +279,13 @@ class RemoveUnusedImports(object):
                     line_adjustment,
                     file_lines,
                 )
+            else:
+                raise Exception(
+                    'Unmatched unsed import case: %s, %s' % (
+                        file_path,
+                        unused_import_line,
+                    )
+                )
 
         if self.commit_changes:
             with open(file_path, 'w') as write_file:
