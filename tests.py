@@ -274,3 +274,10 @@ class TestRemoveUnusedImports(unittest.TestCase):
             'import module.submodule.another_submodule',
         )
         self.assertTrue(match)
+
+    def test_single_import_trailing_comment(self):
+        match = re.match(
+            self.remover.SINGLE_IMPORT_RE % ('module',),
+            'import module # some comment here',
+        )
+        self.assertTrue(match)
