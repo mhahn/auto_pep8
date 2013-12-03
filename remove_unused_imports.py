@@ -98,7 +98,8 @@ class RemoveUnusedImports(object):
             if current_line == ')':
                 end_index = current_index
                 break
-            group.append(current_line.strip(','))
+            if current_line:
+                group.append(current_line.strip(','))
             current_index += 1
         return group, end_index
 
