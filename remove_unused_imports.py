@@ -147,7 +147,7 @@ class RemoveUnusedImports(object):
                 self.BASE_IMPORT_RE,
                 unused_import_line,
             )
-            padding, base_import = base_import_match.groups()
+            padding, base_import = base_import_match.groups('')
             if len(modules_to_keep) > 1:
                 new_line = self.build_multiline_import(
                     padding,
