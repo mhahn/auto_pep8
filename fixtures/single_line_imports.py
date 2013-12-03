@@ -1,3 +1,4 @@
+import some_module as module
 import decimal
 import os
 import sys

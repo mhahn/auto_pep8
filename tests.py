@@ -239,3 +239,31 @@ class TestRemoveUnusedImports(unittest.TestCase):
         self.assertTrue(match)
         self.assertEqual(match.groups()[0], '    ')
         self.assertFalse(match.groups()[1])
+
+    def test_single_import_re_from(self):
+        match = re.match(
+            self.remover.SINGLE_IMPORT_RE % ('module',),
+            'from package import module',
+        )
+        self.assertTrue(match)
+
+    def test_single_import_re_from_alias(self):
+        match = re.match(
+            self.remover.SINGLE_IMPORT_RE % ('another_module',),
+            'from package import module as another_module',
+        )
+        self.assertTrue(match)
+
+    def test_single_import_re_basic(self):
+        match = re.match(
+            self.remover.SINGLE_IMPORT_RE % ('module',),
+            'import module',
+        )
+        self.assertTrue(match)
+
+    def test_single_import_re_basic_alias(self):
+        match = re.match(
+            self.remover.SINGLE_IMPORT_RE % ('another_module',),
+            'import module as another_module',
+        )
+        self.assertTrue(match)
