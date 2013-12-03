@@ -267,3 +267,10 @@ class TestRemoveUnusedImports(unittest.TestCase):
             'import module as another_module',
         )
         self.assertTrue(match)
+
+    def test_single_import_nested_package(self):
+        match = re.match(
+            self.remover.SINGLE_IMPORT_RE % ('module',),
+            'import module.submodule.another_submodule',
+        )
+        self.assertTrue(match)

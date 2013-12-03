@@ -17,7 +17,7 @@ class RemoveUnusedImports(object):
     UNUSED_IMPORT_RE = r'.* imported but unused$'
     UNUSED_MODULE_NAME_RE = r"'(.*)'.*"
 
-    SINGLE_IMPORT_RE = r'(from .*|^)import (.*as\s)?%s$'
+    SINGLE_IMPORT_RE = r'(from .*|^)import (.*as\s)?%s[\.a-zA-Z_]*$'
     ESCAPE_CHARACTER = '\\'
 
     BASE_IMPORT_RE = r'(\s*)(from .*)?import .*'
