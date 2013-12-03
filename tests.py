@@ -179,6 +179,17 @@ class TestRemoveUnusedImports(unittest.TestCase):
             '    )\n'
         )
 
+    def test_build_multiline_import_invalid(self):
+        multiline_import = self.remover.build_multiline_import(
+            '',
+            '',
+            ['module_a', 'module_c', 'module_b'],
+        )
+        self.assertEqual(
+            multiline_import,
+            'import module_a, module_b, module_c\n',
+        )
+
     def test_base_import_re_invalid(self):
         self.assertFalse(
             re.match(

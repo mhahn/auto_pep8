@@ -69,10 +69,18 @@ class RemoveUnusedImports(object):
 
     @staticmethod
     def build_multiline_import(padding, base_import, imports):
-        output = padding + base_import + 'import (\n'
-        for _import in sorted(imports):
-            output += '%s    %s,\n' % (padding, _import,)
-        output += '%s)\n' % (padding,)
+        if not base_import:
+            # import (
+            #   module_a,
+            #   module_b,
+            # )
+            # is invalid syntax
+            output = 'import %s\n' % (', '.join(sorted(imports)))
+        else:
+            output = padding + base_import + 'import (\n'
+            for _import in sorted(imports):
+                output += '%s    %s,\n' % (padding, _import,)
+            output += '%s)\n' % (padding,)
         return output
 
     def group_multiline_imports(self, start_index, file_lines):
