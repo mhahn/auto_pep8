@@ -1,4 +1,5 @@
 import os
+import re
 import unittest
 from tempfile import mkstemp
 
@@ -38,6 +39,7 @@ class _BaseTestCase(unittest.TestCase):
 
         remover = RemoveUnusedImports(self.temp_path, commit_changes=True)
         clean_lines = remover.process()
+
         with open(expected_fixture_path, 'r') as expected_fixture:
             with open(self.temp_path, 'r') as read_temp:
                 result = read_temp.readlines()
@@ -158,6 +160,7 @@ class TestRemoveUnusedImports(unittest.TestCase):
 
     def test_build_multiline_import(self):
         multiline_import = self.remover.build_multiline_import(
+            '',
             'from package ',
             ['module_a', 'module_c', 'module_b'],
         )
@@ -169,3 +172,68 @@ class TestRemoveUnusedImports(unittest.TestCase):
             '    module_c,\n'
             ')\n'
         )
+
+    def test_build_multiline_import_padding(self):
+        multiline_import = self.remover.build_multiline_import(
+            '    ',
+            'from package ',
+            ['module_a', 'module_c', 'module_b'],
+        )
+        self.assertEqual(
+            multiline_import,
+            '    from package import (\n'
+            '        module_a,\n'
+            '        module_b,\n'
+            '        module_c,\n'
+            '    )\n'
+        )
+
+    def test_base_import_re_invalid(self):
+        self.assertFalse(
+            re.match(
+                self.remover.BASE_IMPORT_RE,
+                'random invalid string',
+            )
+        )
+
+    def test_base_import_re_from_basic(self):
+        self.assertTrue(
+            re.match(
+                self.remover.BASE_IMPORT_RE,
+                'from package import module',
+            ),
+        )
+
+    def test_base_import_re_from_submodule(self):
+        self.assertTrue(
+            re.match(
+                self.remover.BASE_IMPORT_RE,
+                'from package.subpackage import module',
+            ),
+        )
+
+    def test_base_import_re_basic(self):
+        self.assertTrue(
+            re.match(
+                self.remover.BASE_IMPORT_RE,
+                'import module_a, module_b',
+            ),
+        )
+
+    def test_base_import_re_from_padding(self):
+        match = re.match(
+                self.remover.BASE_IMPORT_RE,
+                '    from package.subpackage import module',
+        )
+        self.assertTrue(match)
+        self.assertEqual(match.groups()[0], '    ')
+        self.assertEqual(match.groups()[1], 'from package.subpackage ')
+
+    def test_base_import_re_basic_padding(self):
+        match = re.match(
+            self.remover.BASE_IMPORT_RE,
+            '    import module_a, module_b',
+        )
+        self.assertTrue(match)
+        self.assertEqual(match.groups()[0], '    ')
+        self.assertFalse(match.groups()[1])

@@ -22,3 +22,9 @@ OverFlow
 capwords
 find
 stack_size
+
+
+def within_a_function():
+    from random import choice, sample, shuffle
+    choice
+    sample

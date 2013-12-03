@@ -16,3 +16,13 @@ getcwd
 mkdir
 popen
 sys
+
+
+def within_a_function():
+    from random import (
+        choice,
+        shuffle,
+        sample,
+    )
+    choice
+    sample

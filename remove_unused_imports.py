@@ -11,16 +11,16 @@ from pyflakes import (
     reporter as pyflakes_reporter,
 )
 
-UNUSED_IMPORT_RE = r'.* imported but unused$'
-UNUSED_MODULE_NAME_RE = r"'(.*)'.*"
-
-SINGLE_IMPORT_RE = r'(from .*|^)import %s$'
-ESCAPE_CHARACTER = '\\'
-
-BASE_IMPORT_RE = r'(from .*|^)import .*'
-
 
 class RemoveUnusedImports(object):
+
+    UNUSED_IMPORT_RE = r'.* imported but unused$'
+    UNUSED_MODULE_NAME_RE = r"'(.*)'.*"
+
+    SINGLE_IMPORT_RE = r'(from .*|^)import %s$'
+    ESCAPE_CHARACTER = '\\'
+
+    BASE_IMPORT_RE = r'(\s*)(from .*)?import .*'
 
     def __init__(self, base, commit_changes=False):
         self.base = base
@@ -30,17 +30,15 @@ class RemoveUnusedImports(object):
     def _clean_line(line):
         return re.sub(r'[\\\s]', '', line)
 
-    @staticmethod
-    def parse_pyflake_unused_import_error(error_line):
+    def parse_pyflake_unused_import_error(self, error_line):
         path, line_num, error = error_line.split(':')
-        regex_match = re.match(UNUSED_MODULE_NAME_RE, error.strip())
+        regex_match = re.match(self.UNUSED_MODULE_NAME_RE, error.strip())
         unused_module = None
         if regex_match:
-            unused_module = regex_match.groups(1)[0]
+            unused_module = regex_match.groups()[0]
         return path, line_num, unused_module
 
-    @staticmethod
-    def get_unused_imports(directory):
+    def get_unused_imports(self, directory):
         file_descriptor, absolute_path = mkstemp()
         with open(absolute_path, 'w') as report_output:
             eb_reporter = pyflakes_reporter.Reporter(report_output, sys.stderr)
@@ -49,7 +47,7 @@ class RemoveUnusedImports(object):
         with open(absolute_path, 'r') as report_output:
             unused_import_lines = []
             for line in report_output.xreadlines():
-                if re.match(UNUSED_IMPORT_RE, line.strip()):
+                if re.match(self.UNUSED_IMPORT_RE, line.strip()):
                     unused_import_lines.append(line)
 
         os.close(file_descriptor)
@@ -75,11 +73,11 @@ class RemoveUnusedImports(object):
         return filter(None, imported_modules)
 
     @staticmethod
-    def build_multiline_import(base_import, imports):
-        output = base_import + 'import (\n'
+    def build_multiline_import(padding, base_import, imports):
+        output = padding + base_import + 'import (\n'
         for _import in sorted(imports):
-            output += '    %s,\n' % (_import,)
-        output += ')\n'
+            output += '%s    %s,\n' % (padding, _import,)
+        output += '%s)\n' % (padding,)
         return output
 
     def group_multiline_imports(self, start_index, file_lines):
@@ -105,7 +103,7 @@ class RemoveUnusedImports(object):
         group.extend(imported_modules)
         while end_index is None:
             current_line = file_lines[current_index].strip()
-            if ESCAPE_CHARACTER not in current_line:
+            if self.ESCAPE_CHARACTER not in current_line:
                 group.append(current_line.strip(','))
                 end_index = current_index
                 break
@@ -127,7 +125,7 @@ class RemoveUnusedImports(object):
             from package import module_a, module_c, module_b
 
         """
-        if ESCAPE_CHARACTER in unused_import_line:
+        if self.ESCAPE_CHARACTER in unused_import_line:
             imported_modules, end_index = self.group_escaped_imports(
                 index,
                 file_lines,
@@ -145,15 +143,23 @@ class RemoveUnusedImports(object):
             unused_imports,
         )
         if modules_to_keep:
-            base_import_match = re.match(BASE_IMPORT_RE, unused_import_line)
-            base_import = base_import_match.groups(1)[0]
+            base_import_match = re.match(
+                self.BASE_IMPORT_RE,
+                unused_import_line,
+            )
+            padding, base_import = base_import_match.groups()
             if len(modules_to_keep) > 1:
                 new_line = self.build_multiline_import(
+                    padding,
                     base_import,
                     modules_to_keep,
                 )
             else:
-                new_line = base_import + 'import %s\n' % tuple(modules_to_keep)
+                new_line = (
+                    padding + base_import + 'import %s\n' % tuple(
+                        modules_to_keep
+                    )
+                )
             file_lines.insert(index, new_line)
         else:
             line_adjustment += 1
@@ -187,7 +193,9 @@ class RemoveUnusedImports(object):
         )
 
         if not modules_to_keep:
+            old_length = len(file_lines)
             file_lines = file_lines[:index] + file_lines[end_index + 1:]
+            line_adjustment += old_length - len(file_lines)
         elif len(modules_to_keep) == 1:
             file_lines = file_lines[:index] + file_lines[end_index + 1:]
             unused_import_line = unused_import_line.strip('(\n')
@@ -252,7 +260,7 @@ class RemoveUnusedImports(object):
                         file_lines,
                     )
                 )
-            elif len(unused_imports) > 1:
+            elif unused_import_line.endswith('(\n'):
                 line_adjustment, file_lines = self.handle_multiline_imports(
                     unused_imports,
                     index,
@@ -261,8 +269,8 @@ class RemoveUnusedImports(object):
                     file_lines,
                 )
             elif re.match(
-                SINGLE_IMPORT_RE % (unused_imports[0],),
-                unused_import_line
+                self.SINGLE_IMPORT_RE % (unused_imports[0],),
+                unused_import_line.strip()
             ):
                 line_adjustment, file_lines = self.handle_single_line_imports(
                     index,
