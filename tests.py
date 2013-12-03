@@ -149,6 +149,15 @@ class TestRemoveUnusedImports(unittest.TestCase):
         )
         self.assertEqual(imported_modules, ['module_a', 'module_b'])
 
+    def test_split_single_line_multi_imports_parens(self):
+        single_line_multi_imports = 'from package import (module_a, module_b,)'
+        imported_modules = (
+            self.remover.split_single_line_multi_imports(
+                single_line_multi_imports,
+            )
+        )
+        self.assertEqual(imported_modules, ['module_a', 'module_b'])
+
     def test_build_multiline_import(self):
         multiline_import = self.remover.build_multiline_import(
             '',

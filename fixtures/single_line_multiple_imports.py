@@ -1,6 +1,6 @@
 from os import getcwd, chown, mkdir, pipe, popen
 import sys
-from sys import flags, maxint, maxsize
+from sys import (flags, maxint, maxsize)
 
 from numbers import Number, Real, Number, Integral, Complex, Complex
 

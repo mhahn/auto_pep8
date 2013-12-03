@@ -61,9 +61,15 @@ class RemoveUnusedImports(object):
     @staticmethod
     def split_single_line_multi_imports(line):
         imported_modules_string = line.split('import')[1].strip()
+        # remove any parens if present
+        clean_imported_modules_string = re.sub(
+            r'[\(\)]',
+            '',
+            imported_modules_string,
+        )
         imported_modules = map(
             lambda x: x.strip(),
-            imported_modules_string.split(','),
+            clean_imported_modules_string.split(','),
         )
         return filter(None, imported_modules)
 
