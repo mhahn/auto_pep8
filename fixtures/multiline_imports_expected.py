@@ -5,10 +5,17 @@ from os import (
 )
 import sys
 
+from numbers import (
+    Complex,
+    Real,
+)
+
 getcwd
 mkdir
 popen
 sys
+Real
+Complex
 
 
 def within_a_function():

@@ -92,15 +92,6 @@ class TestRemoveUnusedImports(unittest.TestCase):
             ['module_a', 'module_c'],
         )
 
-    def test_get_modules_to_keep_unhandled_filtering(self):
-        imports = ['module_b', 'module_a', 'module_a']
-        unused_imports = ['module_b']
-        with self.assertRaises(AssertionError):
-            self.remover.get_modules_to_keep(
-                imports,
-                unused_imports,
-            )
-
     def test_group_multiline_imports(self):
         file_lines = [
             'import module\n',

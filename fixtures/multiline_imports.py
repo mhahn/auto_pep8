@@ -12,10 +12,21 @@ from sys import (
     stdin,
 )
 
+from numbers import (
+    Number,
+    Real,
+    Number,
+    Integral,
+    Complex,
+    Complex,
+)
+
 getcwd
 mkdir
 popen
 sys
+Real
+Complex
 
 
 def within_a_function():

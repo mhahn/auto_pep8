@@ -5,6 +5,11 @@ from os import (
 )
 from sys import maxint
 
+from numbers import (
+    Complex,
+    Real,
+)
+
 from decimal import OverFlow
 
 from string import (
@@ -22,6 +27,8 @@ OverFlow
 capwords
 find
 stack_size
+Real
+Complex
 
 
 def within_a_function():

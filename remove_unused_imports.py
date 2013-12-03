@@ -56,12 +56,7 @@ class RemoveUnusedImports(object):
 
     @staticmethod
     def get_modules_to_keep(imports, unused_imports):
-        # ensure we're not accidentally filtering out imports
-        assert len(set(imports)) == len(imports)
-        assert len(set(unused_imports)) == len(unused_imports)
-        return sorted(
-            list(set(imports) - set(unused_imports))
-        )
+        return sorted(list(set(imports) - set(unused_imports)))
 
     @staticmethod
     def split_single_line_multi_imports(line):
@@ -192,30 +187,29 @@ class RemoveUnusedImports(object):
             unused_imports,
         )
 
+        old_length = len(file_lines)
+        file_lines = file_lines[:index] + file_lines[end_index + 1:]
         if not modules_to_keep:
-            old_length = len(file_lines)
-            file_lines = file_lines[:index] + file_lines[end_index + 1:]
-            line_adjustment += old_length - len(file_lines)
+            pass
         elif len(modules_to_keep) == 1:
-            file_lines = file_lines[:index] + file_lines[end_index + 1:]
             unused_import_line = unused_import_line.strip('(\n')
             file_lines.insert(
                 index,
                 '%s%s\n' % (unused_import_line, modules_to_keep[0]),
             )
-            line_adjustment += (end_index - index)
         else:
-            modules_to_remove = len(imported_modules) - len(modules_to_keep)
-            remove_index = index + 1
-            while remove_index < end_index and modules_to_remove > 0:
-                if self._clean_line(
-                    file_lines[remove_index]
-                ).strip(',') not in modules_to_keep:
-                    file_lines.pop(remove_index)
-                    modules_to_remove -= 1
-                    line_adjustment += 1
-                else:
-                    remove_index += 1
+            base_import_match = re.match(
+                self.BASE_IMPORT_RE,
+                unused_import_line,
+            )
+            padding, base_import = base_import_match.groups('')
+            new_line = self.build_multiline_import(
+                padding,
+                base_import,
+                modules_to_keep,
+            )
+            file_lines.insert(index, new_line)
+        line_adjustment += old_length - len(file_lines)
         return line_adjustment, file_lines
 
     def handle_single_line_imports(self, index, line_adjustment, file_lines):
